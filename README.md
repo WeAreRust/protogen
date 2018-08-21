@@ -1,7 +1,6 @@
 
-Build protos with:
-```sh
-protoc --plugin=protoc-gen-custom=./target/debug/protogen \
-       --custom_out=./protos \
-       protos/test.proto
-```
+# Protogen
+
+## Usage
+
+Running `make` will build the `protogen` plugin, and run `protoc` on the files in the `protos` directory.
