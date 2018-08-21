@@ -1,0 +1,10 @@
+syntax = "proto2";
+
+import "protos/a/a.proto";
+
+package h;
+
+message Home {
+  required a.Address address = 1;
+  required a.Attic attic = 2;
+}

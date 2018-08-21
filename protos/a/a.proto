@@ -1,0 +1,19 @@
+syntax = "proto2";
+
+import "protos/s/s.proto";
+
+package a;
+
+message Ant {
+  required string id = 1;
+  required string name = 2;
+}
+
+message Attic {
+  required Ant ant = 1;
+}
+
+message Address {
+  required int32 street_num = 1;
+  required s.State state = 2;
+}
