@@ -1,5 +1,0 @@
-syntax = "proto2";
-
-message TestProto {
-    required bool test = 1;
-}

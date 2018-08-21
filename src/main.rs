@@ -19,7 +19,7 @@ fn main() -> Result<(), Box<Error>> {
     let res = match req {
         Ok(r) => CodeGeneratorResponse {
             file: vec![File {
-                name: Some("output.txt".into()),
+                name: Some("../output.txt".into()),
                 content: Some(format!("{:#?}", r)),
                 ..Default::default()
             }],

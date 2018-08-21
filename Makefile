@@ -12,9 +12,9 @@ generate:
 	$(protoc) \
 		--plugin=protoc-gen-custom=$(plugin_path) \
 		--custom_out=$(out_dir) \
-		protos/test.proto
+		protos/**/*.proto
 
 clean:
-	rm -f protos/output.txt
+	rm -f output.txt
 
 .PHONY: build generate clean
