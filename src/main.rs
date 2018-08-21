@@ -1,37 +1,39 @@
-// extern crate protobuf;
 extern crate prost;
 extern crate prost_types;
 
-use std::io::{self, Read, Write};
 use prost::Message;
-use prost_types::compiler::{CodeGeneratorRequest, CodeGeneratorResponse};
-use prost_types::compiler::code_generator_response::File;
+use prost_types::compiler::{
+    code_generator_response::File,
+    {CodeGeneratorRequest, CodeGeneratorResponse},
+};
+use std::{
+    error::Error,
+    io::{stdin, stdout, Read, Write},
+};
 
-fn main() {
+fn main() -> Result<(), Box<Error>> {
     let mut buf = vec![];
-    let _ = io::stdin()
-        .read_to_end(&mut buf)
-        .expect("Could not read stdin");
+    stdin().read_to_end(&mut buf).map(|_| ())?;
 
     let req = CodeGeneratorRequest::decode(buf);
-
     let res = match req {
-        Result::Err(e) => CodeGeneratorResponse {
-            error: Some(format!("Error: {:?}", e)),
-            file: vec![],
-        },
-        Result::Ok(r) => CodeGeneratorResponse {
-            error: None,
+        Ok(r) => CodeGeneratorResponse {
             file: vec![File {
-                name: Some(String::from("output.txt")),
-                insertion_point: None,
+                name: Some("output.txt".into()),
                 content: Some(format!("{:#?}", r)),
+                ..Default::default()
             }],
+            ..Default::default()
+        },
+        Err(e) => CodeGeneratorResponse {
+            error: Some(e.description().into()),
+            ..Default::default()
         },
     };
 
     let mut outbuf = vec![];
-    res.encode(&mut outbuf).expect("Could not encode output");
+    res.encode(&mut outbuf)?;
+    stdout().write_all(&outbuf)?;
 
-    io::stdout().write_all(&outbuf).expect("Could not write output");
+    Ok(())
 }
