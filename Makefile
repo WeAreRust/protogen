@@ -1,7 +1,7 @@
 cargo=cargo
 protoc=protoc
 plugin_path=target/debug/protogen
-out_dir=protos
+out_dir=./
 
 all: build generate
 
@@ -16,5 +16,7 @@ generate:
 
 clean:
 	rm -f output.txt
+	rm -f protos/**/*.ast.txt
+	rm -f protos/**/*.proto.ts
 
 .PHONY: build generate clean
