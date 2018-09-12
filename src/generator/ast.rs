@@ -1,17 +1,25 @@
-use super::Generator;
-use prost_types::compiler::code_generator_response::File;
-use prost_types::FileDescriptorProto;
-use std::error::Error;
+use crate::generator::Generator;
+use prost_types::{compiler::code_generator_response::File, FileDescriptorProto};
+use std::{error::Error, io};
 
 pub struct Ast;
 
 impl Generator for Ast {
-    fn generate(&self, file: &FileDescriptorProto) -> Result<File, Box<Error>> {
-        let filename = file.name.clone().ok_or("no proto filename")?;
+    fn generate(fd: &FileDescriptorProto) -> Result<File, Box<Error>> {
+        let name = format!(
+            "{}.ast.txt",
+            fd.name.clone().ok_or(io::Error::new(
+                io::ErrorKind::Other,
+                "no filename for proto file",
+            ))?
+        );
+
+        let content = format!("{:#?}", fd);
+
         Ok(File {
-            name: Some(format!("{}.ast.txt", filename)),
-            insertion_point: None,
-            content: Some(format!("{:#?}", file)),
+            name: Some(name),
+            content: Some(content),
+            ..Default::default()
         })
     }
 }

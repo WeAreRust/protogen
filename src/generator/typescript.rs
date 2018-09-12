@@ -1,15 +1,20 @@
-use super::Generator;
-use prost_types::compiler::code_generator_response::File;
-use prost_types::FileDescriptorProto;
-use std::error::Error;
+use crate::generator::Generator;
+use prost_types::{compiler::code_generator_response::File, FileDescriptorProto};
+use std::{error::Error, io};
 
 pub struct Typescript;
 
 impl Generator for Typescript {
-    fn generate(&self, file: &FileDescriptorProto) -> Result<File, Box<Error>> {
-        let filename = file.name.clone().ok_or("no proto filename")?;
+    fn generate(fd: &FileDescriptorProto) -> Result<File, Box<Error>> {
+        let name = format!(
+            "{}.ts",
+            fd.name.clone().ok_or(io::Error::new(
+                io::ErrorKind::Other,
+                "no filename for proto file",
+            ))?
+        );
 
-        let enums: Vec<String> = file
+        let enums: Vec<String> = fd
             .enum_type
             .iter()
             .map(|v| {
@@ -19,14 +24,12 @@ impl Generator for Typescript {
                 )
             })
             .collect();
+        let content = format!("// Generated from {}\n\n{}", &name, enums.join("\n\n"));
+
         Ok(File {
-            name: Some(format!("{}.ts", filename)),
-            insertion_point: None,
-            content: Some(format!(
-                "// Generated from {}\n\n{}",
-                filename,
-                enums.join("\n\n")
-            )),
+            name: Some(name),
+            content: Some(content),
+            ..Default::default()
         })
     }
 }
