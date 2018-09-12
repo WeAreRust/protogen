@@ -1,9 +1,8 @@
 extern crate prost;
 extern crate prost_types;
 
-mod generators;
+mod generator;
 
-use generators::typescript;
 use prost::Message;
 use prost_types::compiler::{CodeGeneratorRequest, CodeGeneratorResponse};
 use std::{
@@ -18,12 +17,12 @@ fn main() -> Result<(), Box<Error>> {
     let req: Result<CodeGeneratorRequest, Box<Error>> =
         CodeGeneratorRequest::decode(buf).map_err(|e| Box::from(e));
 
-    let res: CodeGeneratorResponse = req
-        .and_then(|v| typescript::handler(v))
-        .unwrap_or_else(|e| CodeGeneratorResponse {
+    let res: CodeGeneratorResponse = req.and_then(|v| generator::run(v)).unwrap_or_else(|e| {
+        CodeGeneratorResponse {
             error: Some(e.description().into()),
             ..Default::default()
-        });
+        }
+    });
 
     let mut outbuf = vec![];
     res.encode(&mut outbuf)?;
