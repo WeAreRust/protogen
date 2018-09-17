@@ -1,43 +1,33 @@
-use crate::generator::Generator;
-use prost_types::{compiler::code_generator_response::File, FileDescriptorProto};
-use std::{error::Error, io};
+use crate::generator::{Generator, Output};
+use itertools::Itertools;
+use protobuf::descriptor::{EnumDescriptorProto, EnumValueDescriptorProto, FileDescriptorProto};
 
 pub struct Typescript;
 
 impl Generator for Typescript {
-    fn generate(fd: &FileDescriptorProto) -> Result<File, Box<Error>> {
-        let name = format!(
-            "{}.ts",
-            fd.name.clone().ok_or(io::Error::new(
-                io::ErrorKind::Other,
-                "no filename for proto file",
-            ))?
-        );
+    fn generate(fd: &FileDescriptorProto) -> Output {
+        let enums = gen_enum(fd.get_enum_type());
 
-        let enums: Vec<String> = fd
-            .enum_type
-            .iter()
-            .map(|v| {
-                ts_enum(
-                    v.name.clone().unwrap(),
-                    v.value.iter().map(|v| v.name.clone().unwrap()).collect(),
-                )
-            })
-            .collect();
-        let content = format!("// Generated from {}\n\n{}", &name, enums.join("\n\n"));
-
-        Ok(File {
-            name: Some(name),
-            content: Some(content),
-            ..Default::default()
-        })
+        Output {
+            name: format!("{}.ts", fd.get_name()),
+            content: format!("// Generated from {}\n\n{}", &fd.get_name(), enums),
+        }
     }
 }
 
-fn ts_enum(name: String, values: Vec<String>) -> String {
-    format!(
-        "export const enum {} {{\n\t{},\n}}",
-        name,
-        values.join(",\n\t")
-    )
+fn gen_enum(proto: &[EnumDescriptorProto]) -> String {
+    proto
+        .iter()
+        .map(|proto| {
+            format!(
+                "export const enum {} {{\n\t{},\n}}",
+                proto.get_name(),
+                gen_enum_value(proto.get_value()),
+            )
+        })
+        .join("\n\n")
+}
+
+fn gen_enum_value(proto: &[EnumValueDescriptorProto]) -> String {
+    proto.iter().map(|value| value.get_name()).join(",\n\t")
 }
